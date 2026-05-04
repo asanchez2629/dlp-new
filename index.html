@@ -322,17 +322,28 @@
     .globe-svg {
       width: 100%;
       height: 100%;
-      animation: globeSpin 60s linear infinite;
-      transform-origin: center;
+      display: block;
     }
-    @keyframes globeSpin {
+    /* Spin the EARTH around its polar (vertical) axis.
+       We rotate the inner <g class="earth-rotate"> group via SMIL animation,
+       and translate longitude. Pins, arcs, atmosphere stay put. */
+    .earth-rotate-group {
+      transform-origin: 300px 300px;
+      animation: earthRotate 80s linear infinite;
+    }
+    @keyframes earthRotate {
       from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      to   { transform: rotate(360deg); }
     }
-    .globe-overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
+    /* The map itself is drawn on a flat equirectangular grid that's then
+       projected via SVG <pattern>/<image> + <clipPath circle>. We use
+       a translateX inside the clipped band to simulate longitudinal spin. */
+    .earth-map-strip {
+      animation: earthScroll 80s linear infinite;
+    }
+    @keyframes earthScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-600px); } /* width of one map tile */
     }
     .arc-path {
       fill: none;
@@ -475,6 +486,66 @@
       .section-head { grid-template-columns: 1fr; gap: 24px; margin-bottom: 48px; }
     }
 
+    /* ---------- Services grid (chips above featured projects) ---------- */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      margin-bottom: 100px;
+    }
+    .service-card {
+      background: var(--bg);
+      padding: 44px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      transition: background 0.3s ease;
+      min-height: 280px;
+    }
+    .service-card:hover { background: var(--bg-alt); }
+    .service-card .num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--ink-mute);
+    }
+    .service-card h3 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(1.4rem, 2vw, 1.7rem);
+      letter-spacing: -0.015em;
+      line-height: 1.1;
+    }
+    .service-card p {
+      color: var(--ink-dim);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      max-width: 48ch;
+    }
+    .service-card .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+    .service-card .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--ink-mute);
+    }
+    @media (max-width: 780px) {
+      .services-grid { grid-template-columns: 1fr; margin-bottom: 60px; }
+      .service-card { padding: 32px 24px; min-height: auto; }
+    }
+
     /* ---------- Featured Projects ---------- */
     .featured-project {
       display: grid;
@@ -518,58 +589,38 @@
       line-height: 1.65;
       max-width: 50ch;
     }
-    .project-services {
+    .project-services-chips {
       display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin-top: 8px;
-    }
-    .project-service {
-      padding: 22px 0;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 0;
       border-top: 1px solid var(--line);
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 24px;
-      align-items: start;
-      transition: padding-left 0.3s ease;
+      border-bottom: 1px solid var(--line);
     }
-    .project-service:last-child { border-bottom: 1px solid var(--line); }
-    .project-service:hover { padding-left: 12px; }
-    .project-service .ps-num {
+    .services-chip-label {
       font-family: var(--mono);
       font-size: 11px;
       letter-spacing: 0.14em;
-      color: var(--ink-mute);
-      padding-top: 4px;
-    }
-    .project-service .ps-content h4 {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: 1.25rem;
-      letter-spacing: -0.01em;
-      margin-bottom: 6px;
-    }
-    .project-service .ps-content p {
-      color: var(--ink-dim);
-      font-size: 0.95rem;
-      line-height: 1.55;
-    }
-    .project-service .ps-tags {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .project-service .ps-tags .tag {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.1em;
       text-transform: uppercase;
-      padding: 5px 10px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
       color: var(--ink-mute);
+      margin-right: 4px;
     }
+    .services-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(217, 162, 95, 0.06);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      transition: background 0.2s ease;
+    }
+    .services-chip:hover { background: rgba(217, 162, 95, 0.14); }
+
     .project-meta {
       display: flex;
       gap: 32px;
@@ -673,46 +724,146 @@
       .project-visual-sticky { position: relative; top: 0; aspect-ratio: 1 / 1; }
     }
 
-    /* ---------- Process ---------- */
+    /* ---------- Process timeline ---------- */
     .process { background: var(--bg-alt); }
-    .process-steps {
+    .process-timeline {
+      position: relative;
+      padding: 40px 0 20px;
+    }
+    /* The horizontal track line */
+    .process-timeline::before {
+      content: "";
+      position: absolute;
+      top: 64px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--line) 6%,
+        var(--line) 94%,
+        transparent 100%);
+    }
+    /* Animated progress line that fills as user scrolls into view */
+    .process-timeline::after {
+      content: "";
+      position: absolute;
+      top: 64px;
+      left: 0;
+      height: 1px;
+      width: 0;
+      background: var(--accent);
+      transition: width 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s;
+      box-shadow: 0 0 12px rgba(217, 162, 95, 0.5);
+    }
+    .process-timeline.in::after { width: 100%; }
+
+    .timeline-track {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 40px;
+      gap: 0;
+      position: relative;
     }
-    .step {
-      border-top: 1px solid var(--line);
-      padding-top: 24px;
-      padding-right: 16px;
-      transition: border-color 0.3s ease;
+    .timeline-step {
+      position: relative;
+      padding: 0 28px 0 0;
     }
-    .step:hover { border-top-color: var(--accent); }
-    .step .step-num {
-      font-family: var(--display);
-      font-size: 3rem;
-      font-weight: 300;
-      letter-spacing: -0.02em;
-      color: var(--accent);
-      line-height: 1;
+    .timeline-step .ts-dot {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--bg-alt);
+      border: 2px solid var(--line);
+      margin-top: 56px;   /* aligns with the track line at top: 64px */
       margin-bottom: 28px;
+      transition: border-color 0.4s ease, background 0.4s ease, transform 0.4s ease;
+      z-index: 2;
     }
-    .step h4 {
+    .timeline-step .ts-dot::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .process-timeline.in .timeline-step .ts-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .process-timeline.in .timeline-step .ts-dot::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+    /* Stagger dot fill */
+    .process-timeline.in .timeline-step:nth-child(1) .ts-dot { transition-delay: 0.4s; }
+    .process-timeline.in .timeline-step:nth-child(2) .ts-dot { transition-delay: 0.8s; }
+    .process-timeline.in .timeline-step:nth-child(3) .ts-dot { transition-delay: 1.2s; }
+    .process-timeline.in .timeline-step:nth-child(4) .ts-dot { transition-delay: 1.6s; }
+
+    .timeline-step .ts-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+    .timeline-step h4 {
       font-family: var(--display);
       font-weight: 400;
-      font-size: 1.25rem;
-      margin-bottom: 10px;
-      letter-spacing: -0.01em;
+      font-size: 1.4rem;
+      letter-spacing: -0.015em;
+      margin-bottom: 12px;
     }
-    .step p {
+    .timeline-step p {
       color: var(--ink-dim);
       font-size: 0.95rem;
       line-height: 1.55;
+      max-width: 32ch;
     }
+
     @media (max-width: 900px) {
-      .process-steps { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-    }
-    @media (max-width: 520px) {
-      .process-steps { grid-template-columns: 1fr; }
+      /* On narrower screens, switch to vertical timeline */
+      .process-timeline::before {
+        top: 0;
+        bottom: 0;
+        left: 7px;
+        width: 1px;
+        height: auto;
+        right: auto;
+        background: linear-gradient(180deg,
+          transparent 0%,
+          var(--line) 6%,
+          var(--line) 94%,
+          transparent 100%);
+      }
+      .process-timeline::after {
+        top: 0;
+        left: 7px;
+        width: 1px;
+        height: 0;
+        right: auto;
+        transition: height 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s;
+      }
+      .process-timeline.in::after { width: 1px; height: 100%; }
+
+      .timeline-track {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .timeline-step {
+        padding: 0 0 0 40px;
+        position: relative;
+      }
+      .timeline-step .ts-dot {
+        position: absolute;
+        top: 4px;
+        left: 0;
+        margin: 0;
+      }
     }
 
     /* ---------- Clients ---------- */
@@ -1008,90 +1159,237 @@
 
         <div class="globe-wrap reveal">
           <!--
-            Equirectangular projection: lon (-180..180) -> x (0..600), lat (90..-90) -> y (0..300).
-            But we render onto a circular globe via an isometric/orthographic-feel SVG.
-            For simplicity and visual clarity, we render a stylized circular world map
-            with simplified continent paths and arc connections between three pins.
+            Geo-realistic globe.
+            - Map drawn on equirectangular strip 600w x 300h (lon -180..180 -> 0..600, lat 90..-90 -> 0..300)
+            - Strip is duplicated and translateX-animated for seamless polar-axis spin
+            - Clipped to a circle (the visible globe disc)
+            - Pins (Colombia, USA, Spain) sit on a STATIC overlay — they don't spin
+              (this is the "facing-us" hemisphere where our offices live)
+            - Arcs connect them, also static, drawn over the spinning map
           -->
           <svg class="globe-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
-              <radialGradient id="globeFill" cx="40%" cy="35%" r="70%">
-                <stop offset="0%" stop-color="#1F1D17" />
-                <stop offset="60%" stop-color="#14140F" />
-                <stop offset="100%" stop-color="#0A0A08" />
+              <radialGradient id="globeFill" cx="42%" cy="35%" r="70%">
+                <stop offset="0%" stop-color="#23211A" />
+                <stop offset="55%" stop-color="#16150F" />
+                <stop offset="100%" stop-color="#080806" />
               </radialGradient>
               <radialGradient id="globeGlow" cx="50%" cy="50%" r="55%">
-                <stop offset="80%" stop-color="rgba(217,162,95,0)" />
-                <stop offset="100%" stop-color="rgba(217,162,95,0.18)" />
+                <stop offset="78%" stop-color="rgba(217,162,95,0)" />
+                <stop offset="100%" stop-color="rgba(217,162,95,0.22)" />
               </radialGradient>
+              <radialGradient id="globeShade" cx="38%" cy="32%" r="75%">
+                <stop offset="55%" stop-color="rgba(255,240,210,0)" />
+                <stop offset="100%" stop-color="rgba(0,0,0,0.55)" />
+              </radialGradient>
+              <clipPath id="globeClip">
+                <circle cx="300" cy="300" r="240" />
+              </clipPath>
             </defs>
 
-            <!-- Outer atmospheric glow -->
+            <!-- Atmospheric outer glow -->
             <circle cx="300" cy="300" r="270" fill="url(#globeGlow)" />
 
-            <!-- Globe body -->
+            <!-- Globe ocean / base -->
             <circle cx="300" cy="300" r="240" fill="url(#globeFill)" stroke="#2A2822" stroke-width="1" />
 
-            <!-- Latitude lines -->
-            <g fill="none" stroke="#2A2822" stroke-width="0.8" opacity="0.6">
-              <ellipse cx="300" cy="300" rx="240" ry="40" />
-              <ellipse cx="300" cy="300" rx="240" ry="100" />
-              <ellipse cx="300" cy="300" rx="240" ry="160" />
-              <ellipse cx="300" cy="300" rx="240" ry="220" />
+            <!-- ============ SPINNING MAP LAYER ============ -->
+            <g clip-path="url(#globeClip)">
+              <!-- We translate the strip by -600 over the animation. By duplicating the
+                   continent group at x+600, the strip wraps seamlessly. -->
+              <g class="earth-map-strip">
+                <!-- ===== Tile A: lon 0..600 ===== -->
+                <g transform="translate(0, 60)">
+                  <!-- The strip spans y=0..300 inside the clipped circle (which is y=60..540 in viewBox).
+                       Equirectangular: lat 90 -> y=0, lat -90 -> y=300, equator at y=150.
+                       Lon -180 -> x=0, lon +180 -> x=600. -->
+
+                  <!-- Latitude grid -->
+                  <g stroke="#2D2A22" stroke-width="0.6" fill="none" opacity="0.55">
+                    <line x1="0" y1="50"  x2="600" y2="50" />   <!-- 60N -->
+                    <line x1="0" y1="100" x2="600" y2="100" />  <!-- 30N -->
+                    <line x1="0" y1="150" x2="600" y2="150" />  <!-- equator -->
+                    <line x1="0" y1="200" x2="600" y2="200" />  <!-- 30S -->
+                    <line x1="0" y1="250" x2="600" y2="250" />  <!-- 60S -->
+                  </g>
+                  <!-- Longitude grid every 30deg = every 50 units -->
+                  <g stroke="#2D2A22" stroke-width="0.6" fill="none" opacity="0.55">
+                    <line x1="50"  y1="0" x2="50"  y2="300" />
+                    <line x1="100" y1="0" x2="100" y2="300" />
+                    <line x1="150" y1="0" x2="150" y2="300" />
+                    <line x1="200" y1="0" x2="200" y2="300" />
+                    <line x1="250" y1="0" x2="250" y2="300" />
+                    <line x1="300" y1="0" x2="300" y2="300" /> <!-- prime meridian -->
+                    <line x1="350" y1="0" x2="350" y2="300" />
+                    <line x1="400" y1="0" x2="400" y2="300" />
+                    <line x1="450" y1="0" x2="450" y2="300" />
+                    <line x1="500" y1="0" x2="500" y2="300" />
+                    <line x1="550" y1="0" x2="550" y2="300" />
+                  </g>
+
+                  <!-- ===== CONTINENTS (recognizable real-world shapes) ===== -->
+                  <!-- Coordinate convention: x = (lon + 180) * (600/360) = (lon+180)*1.667
+                                              y = (90 - lat) * (300/180) = (90-lat)*1.667 -->
+                  <g fill="#4A4231" stroke="#5A5240" stroke-width="0.5" opacity="0.95">
+
+                    <!-- NORTH AMERICA: Alaska + Canada + US + Mexico + Central America -->
+                    <path d="M 30 50
+                             L 60 45 L 95 48 L 130 55 L 160 60 L 175 70
+                             L 168 78 L 175 88 L 195 95 L 210 105 L 215 118
+                             L 200 130 L 188 138 L 178 145 L 168 152 L 158 165
+                             L 150 175 L 145 188 L 152 192 L 158 196
+                             L 152 200 L 148 196 L 142 195 L 145 200
+                             L 130 175 L 118 165 L 105 155 L 95 142 L 92 130
+                             L 88 115 L 80 100 L 65 88 L 50 75 L 38 62 Z" />
+
+                    <!-- Greenland -->
+                    <path d="M 215 50 L 240 45 L 250 55 L 248 75 L 235 90 L 220 88 L 212 70 Z" />
+
+                    <!-- SOUTH AMERICA -->
+                    <path d="M 175 200 L 185 198 L 195 205 L 200 215 L 205 225
+                             L 210 240 L 208 255 L 200 270 L 192 280 L 185 275
+                             L 178 260 L 173 245 L 170 230 L 168 218 L 170 208 Z" />
+
+                    <!-- EUROPE -->
+                    <path d="M 290 78 L 305 72 L 320 70 L 335 68 L 340 75
+                             L 350 78 L 355 88 L 350 95 L 340 98 L 325 100
+                             L 315 103 L 305 105 L 295 100 L 288 92 L 290 82 Z" />
+                    <!-- UK + Ireland -->
+                    <path d="M 286 82 L 290 80 L 293 86 L 290 92 L 285 90 Z" />
+                    <!-- Scandinavia -->
+                    <path d="M 308 60 L 318 55 L 328 60 L 332 72 L 322 80 L 312 75 Z" />
+
+                    <!-- AFRICA -->
+                    <path d="M 295 110 L 315 108 L 335 110 L 348 115 L 355 125
+                             L 358 140 L 360 155 L 355 170 L 348 185 L 340 195
+                             L 330 200 L 320 198 L 310 192 L 302 180 L 296 165
+                             L 292 150 L 290 135 L 290 120 Z" />
+                    <!-- Madagascar -->
+                    <path d="M 365 175 L 370 170 L 372 180 L 368 190 L 365 185 Z" />
+
+                    <!-- MIDDLE EAST / ARABIA -->
+                    <path d="M 358 115 L 372 112 L 378 122 L 380 135 L 372 145
+                             L 362 142 L 358 130 Z" />
+
+                    <!-- ASIA: Russia + China + India + SE Asia -->
+                    <path d="M 340 60 L 380 55 L 420 50 L 460 52 L 500 55 L 530 60 L 545 70
+                             L 540 82 L 525 92 L 515 100 L 505 105 L 495 110
+                             L 485 105 L 475 102 L 465 105 L 455 108 L 445 105
+                             L 435 102 L 425 100 L 415 98 L 405 95 L 395 92
+                             L 385 90 L 375 88 L 365 85 L 355 78 L 345 70 Z" />
+                    <!-- India -->
+                    <path d="M 410 115 L 422 112 L 430 120 L 432 132 L 425 142 L 418 145 L 412 138 L 408 125 Z" />
+                    <!-- Indochina + Malay peninsula -->
+                    <path d="M 458 118 L 470 115 L 478 125 L 478 138 L 472 148 L 465 152 L 460 145 L 458 132 Z" />
+                    <!-- Indonesia (archipelago, broken islands) -->
+                    <g>
+                      <ellipse cx="475" cy="160" rx="14" ry="3" />
+                      <ellipse cx="492" cy="162" rx="10" ry="3" />
+                      <ellipse cx="505" cy="165" rx="12" ry="3.5" />
+                      <ellipse cx="488" cy="170" rx="6" ry="2.5" />
+                    </g>
+                    <!-- Japan -->
+                    <path d="M 518 88 L 524 85 L 528 92 L 525 100 L 520 98 Z" />
+                    <!-- Philippines -->
+                    <ellipse cx="510" cy="130" rx="5" ry="10" />
+
+                    <!-- AUSTRALIA -->
+                    <path d="M 478 188 L 510 185 L 530 188 L 540 198 L 535 210
+                             L 520 215 L 500 215 L 485 210 L 478 200 Z" />
+                    <!-- New Zealand -->
+                    <path d="M 555 218 L 562 215 L 565 225 L 560 232 Z" />
+
+                    <!-- ANTARCTICA (band at bottom) -->
+                    <path d="M 0 280 L 600 280 L 600 300 L 0 300 Z" opacity="0.6" />
+                  </g>
+                </g>
+
+                <!-- ===== Tile B: duplicate, x+600, for seamless wrap ===== -->
+                <g transform="translate(600, 60)">
+                  <g stroke="#2D2A22" stroke-width="0.6" fill="none" opacity="0.55">
+                    <line x1="0" y1="50"  x2="600" y2="50" />
+                    <line x1="0" y1="100" x2="600" y2="100" />
+                    <line x1="0" y1="150" x2="600" y2="150" />
+                    <line x1="0" y1="200" x2="600" y2="200" />
+                    <line x1="0" y1="250" x2="600" y2="250" />
+                  </g>
+                  <g stroke="#2D2A22" stroke-width="0.6" fill="none" opacity="0.55">
+                    <line x1="50"  y1="0" x2="50"  y2="300" />
+                    <line x1="100" y1="0" x2="100" y2="300" />
+                    <line x1="150" y1="0" x2="150" y2="300" />
+                    <line x1="200" y1="0" x2="200" y2="300" />
+                    <line x1="250" y1="0" x2="250" y2="300" />
+                    <line x1="300" y1="0" x2="300" y2="300" />
+                    <line x1="350" y1="0" x2="350" y2="300" />
+                    <line x1="400" y1="0" x2="400" y2="300" />
+                    <line x1="450" y1="0" x2="450" y2="300" />
+                    <line x1="500" y1="0" x2="500" y2="300" />
+                    <line x1="550" y1="0" x2="550" y2="300" />
+                  </g>
+                  <g fill="#4A4231" stroke="#5A5240" stroke-width="0.5" opacity="0.95">
+                    <path d="M 30 50 L 60 45 L 95 48 L 130 55 L 160 60 L 175 70 L 168 78 L 175 88 L 195 95 L 210 105 L 215 118 L 200 130 L 188 138 L 178 145 L 168 152 L 158 165 L 150 175 L 145 188 L 152 192 L 158 196 L 152 200 L 148 196 L 142 195 L 145 200 L 130 175 L 118 165 L 105 155 L 95 142 L 92 130 L 88 115 L 80 100 L 65 88 L 50 75 L 38 62 Z" />
+                    <path d="M 215 50 L 240 45 L 250 55 L 248 75 L 235 90 L 220 88 L 212 70 Z" />
+                    <path d="M 175 200 L 185 198 L 195 205 L 200 215 L 205 225 L 210 240 L 208 255 L 200 270 L 192 280 L 185 275 L 178 260 L 173 245 L 170 230 L 168 218 L 170 208 Z" />
+                    <path d="M 290 78 L 305 72 L 320 70 L 335 68 L 340 75 L 350 78 L 355 88 L 350 95 L 340 98 L 325 100 L 315 103 L 305 105 L 295 100 L 288 92 L 290 82 Z" />
+                    <path d="M 286 82 L 290 80 L 293 86 L 290 92 L 285 90 Z" />
+                    <path d="M 308 60 L 318 55 L 328 60 L 332 72 L 322 80 L 312 75 Z" />
+                    <path d="M 295 110 L 315 108 L 335 110 L 348 115 L 355 125 L 358 140 L 360 155 L 355 170 L 348 185 L 340 195 L 330 200 L 320 198 L 310 192 L 302 180 L 296 165 L 292 150 L 290 135 L 290 120 Z" />
+                    <path d="M 365 175 L 370 170 L 372 180 L 368 190 L 365 185 Z" />
+                    <path d="M 358 115 L 372 112 L 378 122 L 380 135 L 372 145 L 362 142 L 358 130 Z" />
+                    <path d="M 340 60 L 380 55 L 420 50 L 460 52 L 500 55 L 530 60 L 545 70 L 540 82 L 525 92 L 515 100 L 505 105 L 495 110 L 485 105 L 475 102 L 465 105 L 455 108 L 445 105 L 435 102 L 425 100 L 415 98 L 405 95 L 395 92 L 385 90 L 375 88 L 365 85 L 355 78 L 345 70 Z" />
+                    <path d="M 410 115 L 422 112 L 430 120 L 432 132 L 425 142 L 418 145 L 412 138 L 408 125 Z" />
+                    <path d="M 458 118 L 470 115 L 478 125 L 478 138 L 472 148 L 465 152 L 460 145 L 458 132 Z" />
+                    <g>
+                      <ellipse cx="475" cy="160" rx="14" ry="3" />
+                      <ellipse cx="492" cy="162" rx="10" ry="3" />
+                      <ellipse cx="505" cy="165" rx="12" ry="3.5" />
+                      <ellipse cx="488" cy="170" rx="6" ry="2.5" />
+                    </g>
+                    <path d="M 518 88 L 524 85 L 528 92 L 525 100 L 520 98 Z" />
+                    <ellipse cx="510" cy="130" rx="5" ry="10" />
+                    <path d="M 478 188 L 510 185 L 530 188 L 540 198 L 535 210 L 520 215 L 500 215 L 485 210 L 478 200 Z" />
+                    <path d="M 555 218 L 562 215 L 565 225 L 560 232 Z" />
+                    <path d="M 0 280 L 600 280 L 600 300 L 0 300 Z" opacity="0.6" />
+                  </g>
+                </g>
+              </g>
             </g>
 
-            <!-- Longitude lines -->
-            <g fill="none" stroke="#2A2822" stroke-width="0.8" opacity="0.6">
-              <ellipse cx="300" cy="300" rx="40" ry="240" />
-              <ellipse cx="300" cy="300" rx="100" ry="240" />
-              <ellipse cx="300" cy="300" rx="160" ry="240" />
-              <ellipse cx="300" cy="300" rx="220" ry="240" />
-            </g>
+            <!-- Spherical shading overlay (gives 3D feel) -->
+            <circle cx="300" cy="300" r="240" fill="url(#globeShade)" pointer-events="none" />
 
-            <!-- Stylized continents (simplified shapes, dotted look) -->
-            <g fill="#3A3528" opacity="0.85">
-              <!-- North America -->
-              <path d="M 130 200 Q 145 180 175 175 Q 210 172 230 195 Q 245 220 232 245 Q 218 268 188 270 Q 158 268 142 248 Q 125 225 130 200 Z" />
-              <!-- South America -->
-              <path d="M 200 305 Q 215 295 230 305 Q 240 330 235 360 Q 225 395 210 415 Q 198 425 195 405 Q 192 375 198 345 Q 200 320 200 305 Z" />
-              <!-- Europe -->
-              <path d="M 320 200 Q 340 192 358 200 Q 370 215 365 230 Q 350 240 332 235 Q 318 225 320 200 Z" />
-              <!-- Africa -->
-              <path d="M 330 250 Q 355 245 375 260 Q 385 290 378 325 Q 365 365 348 380 Q 332 385 325 365 Q 318 330 322 295 Q 326 270 330 250 Z" />
-              <!-- Asia -->
-              <path d="M 380 200 Q 420 188 460 198 Q 480 215 478 240 Q 462 262 430 260 Q 400 255 385 240 Q 375 220 380 200 Z" />
-              <!-- Australia -->
-              <path d="M 440 360 Q 460 355 478 365 Q 484 380 472 388 Q 452 390 438 380 Q 432 368 440 360 Z" />
-            </g>
+            <!-- Globe rim -->
+            <circle cx="300" cy="300" r="240" fill="none" stroke="rgba(217,162,95,0.25)" stroke-width="1.2" />
 
-            <!-- Connection arcs from Colombia outward -->
-            <!-- Colombia (~ x:215, y:295) -> USA (~ x:175, y:215) -->
+            <!-- ============ STATIC OVERLAY: pins + arcs ============ -->
+            <!-- Approximate positions on the visible disc (lon centered ~ -50, equator at y=300):
+                 Colombia (lon -74, lat 4)   -> we place at (255, 320)
+                 USA      (lon -98, lat 39)  -> (215, 245)
+                 Spain    (lon  -3, lat 40)  -> (375, 245)
+                 These sit on the visible Americas/Europe hemisphere. -->
+
+            <!-- Connection arcs -->
             <path class="arc-path arc-anim"
-                  d="M 215 295 Q 130 230 175 215" />
-
-            <!-- Colombia -> Spain (~ x:340, y:215) -->
+                  d="M 255 320 Q 200 270 215 245" />
             <path class="arc-path arc-anim delay-1"
-                  d="M 215 295 Q 280 180 340 215" />
-
-            <!-- Optional second arc back: USA -> Spain to show full network -->
+                  d="M 255 320 Q 320 220 375 245" />
             <path class="arc-path arc-anim delay-2"
-                  d="M 175 215 Q 260 150 340 215" />
+                  d="M 215 245 Q 295 195 375 245" />
 
-            <!-- City pins with pulse -->
             <!-- Colombia -->
-            <circle class="city-pin-pulse" cx="215" cy="295" r="6" />
-            <circle class="city-pin" cx="215" cy="295" r="5" />
-            <text class="city-label" x="225" y="298">Colombia</text>
+            <circle class="city-pin-pulse" cx="255" cy="320" r="6" />
+            <circle class="city-pin" cx="255" cy="320" r="5" />
+            <text class="city-label" x="265" y="324">Colombia</text>
 
             <!-- USA -->
-            <circle class="city-pin-pulse delay-a" cx="175" cy="215" r="6" />
-            <circle class="city-pin" cx="175" cy="215" r="5" />
-            <text class="city-label" x="105" y="208">EE.UU.</text>
+            <circle class="city-pin-pulse delay-a" cx="215" cy="245" r="6" />
+            <circle class="city-pin" cx="215" cy="245" r="5" />
+            <text class="city-label" x="148" y="240">EE.UU.</text>
 
             <!-- Spain -->
-            <circle class="city-pin-pulse delay-b" cx="340" cy="215" r="6" />
-            <circle class="city-pin" cx="340" cy="215" r="5" />
-            <text class="city-label" x="350" y="208">España</text>
+            <circle class="city-pin-pulse delay-b" cx="375" cy="245" r="6" />
+            <circle class="city-pin" cx="375" cy="245" r="5" />
+            <text class="city-label" x="385" y="240">España</text>
           </svg>
         </div>
       </div>
@@ -1136,10 +1434,70 @@
       <div class="section-head reveal">
         <div>
           <span class="eyebrow">/ 01 — Lo que hacemos</span>
-          <h2 class="section-title">A través de <em>proyectos</em> reales</h2>
+          <h2 class="section-title">Cuatro servicios, <em>un equipo</em></h2>
         </div>
         <p class="lead">
-          No vendemos servicios sueltos — los integramos en proyectos completos. Aquí dos casos donde nuestras cuatro disciplinas se vuelven una sola entrega: precisión técnica, coordinación de obra y diseño con criterio.
+          Documentación, BIM, diseño y coordinación. Operamos en tu software, bajo tus estándares, en tu cronograma. Sin fricción, sin curva de adopción.
+        </p>
+      </div>
+
+      <!-- Services grid (chips) -->
+      <div class="services-grid reveal">
+        <article class="service-card">
+          <div class="num">/ 01</div>
+          <h3>Documentación Técnica</h3>
+          <p>Planos completos (plantas, elevaciones, secciones) y paquetes documentales listos para permisos y obra. Precisión, cumplimiento normativo y entregables premium que aceleran la aprobación.</p>
+          <div class="tags">
+            <span class="tag">Permisos</span>
+            <span class="tag">CDs</span>
+            <span class="tag">As-builts</span>
+          </div>
+        </article>
+
+        <article class="service-card">
+          <div class="num">/ 02</div>
+          <h3>Modelado 3D, BIM &amp; CAD</h3>
+          <p>Desarrollo y coordinación en Revit, conversión de nubes de puntos a BIM, visualizaciones en SketchUp, detección de interferencias y familias Revit a medida. Modelos precisos que reducen errores en obra.</p>
+          <div class="tags">
+            <span class="tag">Revit</span>
+            <span class="tag">Point Cloud</span>
+            <span class="tag">Clash Detection</span>
+          </div>
+        </article>
+
+        <article class="service-card">
+          <div class="num">/ 03</div>
+          <h3>Arquitectura &amp; Diseño Interior</h3>
+          <p>Interiores con personalidad y eficacia — viviendas, oficinas y locales comerciales. Desde concepto y distribución hasta selección de materiales, mobiliario e iluminación. Pensado para maximizar habitabilidad y rentabilidad.</p>
+          <div class="tags">
+            <span class="tag">Residencial</span>
+            <span class="tag">Comercial</span>
+            <span class="tag">Renders</span>
+          </div>
+        </article>
+
+        <article class="service-card">
+          <div class="num">/ 04</div>
+          <h3>Coordinación de Diseño</h3>
+          <p>Llevamos tu diseño a la realidad, tal como lo imaginaste. Supervisamos cada detalle de la ejecución, manteniendo calidad y realizando ajustes a tiempo. Gestión integral para que el proyecto fluya sin complicaciones.</p>
+          <div class="tags">
+            <span class="tag">Obra</span>
+            <span class="tag">QA/QC</span>
+            <span class="tag">Gestión</span>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Sub-eyebrow for projects -->
+    <div class="container">
+      <div class="section-head reveal" style="margin-bottom: 0;">
+        <div>
+          <span class="eyebrow">/ Proyectos destacados</span>
+          <h2 class="section-title">En <em>obra</em></h2>
+        </div>
+        <p class="lead">
+          Dos casos donde nuestras disciplinas se vuelven una sola entrega: precisión técnica, coordinación de obra y diseño con criterio.
         </p>
       </div>
     </div>
@@ -1148,37 +1506,16 @@
     <div id="bim" class="container">
       <div class="featured-project">
         <div class="project-content reveal">
-          <div class="project-tag">/ Proyecto 01 — BIM &amp; Documentación</div>
+          <div class="project-tag">/ Proyecto 01</div>
           <h3 class="project-title">Torre <em>Meridiana,</em> Bogotá</h3>
           <p class="project-desc">
             Edificio multifamiliar de 18 niveles. Modelado BIM completo desde nubes de puntos, paquete de Documentos de Construcción listos para permisos, detección de interferencias entre arquitectura, estructura y MEP. Cero RFIs por errores de plano durante ejecución.
           </p>
 
-          <div class="project-services">
-            <div class="project-service">
-              <div class="ps-num">/ 01</div>
-              <div class="ps-content">
-                <h4>Documentación Técnica</h4>
-                <p>Planos completos (plantas, elevaciones, secciones), paquete documental para permisos y CDs listos para obra. Precisión, cumplimiento normativo y entregables premium que aceleran la aprobación.</p>
-                <div class="ps-tags">
-                  <span class="tag">Permisos</span>
-                  <span class="tag">CDs</span>
-                  <span class="tag">As-builts</span>
-                </div>
-              </div>
-            </div>
-            <div class="project-service">
-              <div class="ps-num">/ 02</div>
-              <div class="ps-content">
-                <h4>Modelado 3D, BIM &amp; CAD</h4>
-                <p>Desarrollo y coordinación en Revit, conversión de nubes de puntos a BIM, detección de interferencias y familias Revit a medida. Modelos precisos que reducen errores en obra.</p>
-                <div class="ps-tags">
-                  <span class="tag">Revit</span>
-                  <span class="tag">Point Cloud</span>
-                  <span class="tag">Clash Detection</span>
-                </div>
-              </div>
-            </div>
+          <div class="project-services-chips">
+            <span class="services-chip-label">Servicios aplicados</span>
+            <span class="services-chip">/ 01 · Documentación Técnica</span>
+            <span class="services-chip">/ 02 · Modelado 3D, BIM &amp; CAD</span>
           </div>
 
           <div class="project-meta">
@@ -1290,37 +1627,16 @@
     <div id="diseno" class="container">
       <div class="featured-project reverse">
         <div class="project-content reveal">
-          <div class="project-tag">/ Proyecto 02 — Diseño &amp; Coordinación</div>
+          <div class="project-tag">/ Proyecto 02</div>
           <h3 class="project-title">Casa <em>Lumiar,</em> Medellín</h3>
           <p class="project-desc">
             Vivienda residencial de 380 m². Diseño interior integral — distribución, materiales, mobiliario e iluminación — con coordinación de obra desde concepto hasta entrega de llaves. Cada detalle ejecutado tal como se diseñó en planos.
           </p>
 
-          <div class="project-services">
-            <div class="project-service">
-              <div class="ps-num">/ 03</div>
-              <div class="ps-content">
-                <h4>Arquitectura &amp; Diseño Interior</h4>
-                <p>Interiores con personalidad y eficacia. Desde concepto y distribución hasta selección de materiales, mobiliario e iluminación. Pensado para maximizar habitabilidad y rentabilidad.</p>
-                <div class="ps-tags">
-                  <span class="tag">Residencial</span>
-                  <span class="tag">Comercial</span>
-                  <span class="tag">Renders</span>
-                </div>
-              </div>
-            </div>
-            <div class="project-service">
-              <div class="ps-num">/ 04</div>
-              <div class="ps-content">
-                <h4>Coordinación de Diseño</h4>
-                <p>Llevamos tu diseño a la realidad, tal como lo imaginaste. Supervisamos cada detalle de la ejecución, manteniendo calidad y realizando ajustes a tiempo. Gestión integral para que el proyecto fluya sin complicaciones.</p>
-                <div class="ps-tags">
-                  <span class="tag">Obra</span>
-                  <span class="tag">QA/QC</span>
-                  <span class="tag">Gestión</span>
-                </div>
-              </div>
-            </div>
+          <div class="project-services-chips">
+            <span class="services-chip-label">Servicios aplicados</span>
+            <span class="services-chip">/ 03 · Arquitectura &amp; Diseño Interior</span>
+            <span class="services-chip">/ 04 · Coordinación de Diseño</span>
           </div>
 
           <div class="project-meta">
@@ -1425,26 +1741,32 @@
         </p>
       </div>
 
-      <div class="process-steps reveal">
-        <div class="step">
-          <div class="step-num">01</div>
-          <h4>Llamada inicial</h4>
-          <p>Entendemos tu proyecto, alcance y cronograma. Si no somos el match correcto, te lo decimos en la primera reunión.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">02</div>
-          <h4>Propuesta</h4>
-          <p>Recibes alcance detallado, cronograma firme y precio cerrado. Sin letra chica, sin variables ocultas.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">03</div>
-          <h4>Desarrollo</h4>
-          <p>Colaboramos en tu entorno — Revit, CAD, SketchUp, BIM 360 — con entregas parciales semanales para que siempre sepas dónde vamos.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">04</div>
-          <h4>Entrega</h4>
-          <p>Paquete final revisado, coordinado y listo para permisos u obra. Soporte incluido durante ejecución.</p>
+      <div class="process-timeline reveal">
+        <div class="timeline-track">
+          <div class="timeline-step">
+            <div class="ts-dot"></div>
+            <div class="ts-num">/ 01</div>
+            <h4>Llamada inicial</h4>
+            <p>Entendemos tu proyecto, alcance y cronograma. Si no somos el match correcto, te lo decimos en la primera reunión.</p>
+          </div>
+          <div class="timeline-step">
+            <div class="ts-dot"></div>
+            <div class="ts-num">/ 02</div>
+            <h4>Propuesta</h4>
+            <p>Recibes alcance detallado, cronograma firme y precio cerrado. Sin letra chica, sin variables ocultas.</p>
+          </div>
+          <div class="timeline-step">
+            <div class="ts-dot"></div>
+            <div class="ts-num">/ 03</div>
+            <h4>Desarrollo</h4>
+            <p>Colaboramos en tu entorno — Revit, CAD, SketchUp, BIM 360 — con entregas parciales semanales.</p>
+          </div>
+          <div class="timeline-step">
+            <div class="ts-dot"></div>
+            <div class="ts-num">/ 04</div>
+            <h4>Entrega</h4>
+            <p>Paquete final revisado, coordinado y listo para permisos u obra. Soporte incluido durante ejecución.</p>
+          </div>
         </div>
       </div>
     </div>

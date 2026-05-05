@@ -13,8 +13,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- dotLottie web component for the rotating globe -->
-  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.5/dist/dotlottie-wc.js" type="module"></script>
+  <!-- dotLottie web component for the rotating globe.
+       Using @latest per LottieFiles' official example. -->
+  <script type="module" src="https://unpkg.com/@lottiefiles/dotlottie-wc@latest/dist/dotlottie-wc.js"></script>
 
   <style>
     /* ---------- Design tokens ---------- */
@@ -1647,6 +1648,27 @@
   </footer>
 
   <script>
+    // ============= Globe (dotLottie) load diagnostics =============
+    // If the .lottie fails to load (wrong path, CORS, 404), we want a clear
+    // signal in the console + visible fallback rather than a silent blank.
+    const globeEl = document.querySelector('.globe-wrap dotlottie-wc');
+    if (globeEl) {
+      globeEl.addEventListener('error', (e) => {
+        console.error('[Globe] dotlottie-wc error:', e, 'src:', globeEl.getAttribute('src'));
+        const wrap = document.querySelector('.globe-wrap');
+        if (wrap && !wrap.querySelector('.globe-fallback')) {
+          const f = document.createElement('div');
+          f.className = 'globe-fallback';
+          f.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-mute);font-family:var(--mono);font-size:11px;text-align:center;padding:24px;letter-spacing:0.1em;text-transform:uppercase;';
+          f.textContent = 'Globe failed to load. Check console for details.';
+          wrap.appendChild(f);
+        }
+      });
+      globeEl.addEventListener('load', () => {
+        console.log('[Globe] loaded successfully');
+      });
+    }
+
     // ============= Scroll reveal =============
     const io = new IntersectionObserver((entries) => {
       entries.forEach(entry => {

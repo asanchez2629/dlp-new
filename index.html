@@ -428,10 +428,9 @@
       margin-bottom: 100px;
     }
     .service-row {
-      display: grid;
-      grid-template-columns: 80px 1fr 280px;
-      gap: 48px;
+      display: flex;
       align-items: center;
+      gap: 48px;
       padding: 40px 0;
       border-bottom: 1px solid var(--line);
       transition: padding 0.3s ease, background 0.3s ease;
@@ -441,7 +440,18 @@
       padding-left: 16px;
       padding-right: 16px;
     }
+    /* Reversed rows: same DOM, but visually flipped via flex-direction.
+       This keeps source order (num, content, illustration) but renders
+       (illustration, content, num) for rows 2 & 4. */
+    .service-row.reverse {
+      flex-direction: row-reverse;
+    }
+    .service-row.reverse .sr-num {
+      text-align: right;
+    }
+
     .service-row .sr-num {
+      flex: 0 0 80px;
       font-family: var(--mono);
       font-size: 12px;
       letter-spacing: 0.14em;
@@ -452,10 +462,11 @@
     }
     .service-row:hover .sr-num { color: var(--accent); }
     .service-row .sr-content {
+      flex: 1 1 auto;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      min-width: 0;
     }
     .service-row .sr-content h3 {
       font-family: var(--display);
@@ -487,6 +498,7 @@
       color: var(--ink-mute);
     }
     .service-row .sr-illustration {
+      flex: 0 0 280px;
       position: relative;
       aspect-ratio: 4 / 3;
       background: linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%);
@@ -497,14 +509,6 @@
       align-items: center;
       justify-content: center;
     }
-    /* Reversed rows: illustration on the LEFT, content on the right.
-       We re-order with grid-column overrides so the same DOM order works. */
-    .service-row.reverse {
-      grid-template-columns: 280px 1fr 80px;
-    }
-    .service-row.reverse .sr-num     { grid-column: 3; text-align: right; }
-    .service-row.reverse .sr-content { grid-column: 2; }
-    .service-row.reverse .sr-illustration { grid-column: 1; }
     .service-row .sr-illustration::before {
       content: "";
       position: absolute;
@@ -530,15 +534,19 @@
       padding: 16px;
     }
     @media (max-width: 900px) {
-      .service-row {
-        grid-template-columns: 60px 1fr;
+      .service-row,
+      .service-row.reverse {
+        flex-direction: column;
+        align-items: flex-start;
         gap: 24px;
         padding: 32px 0;
       }
       .service-row:hover { padding-left: 8px; padding-right: 8px; }
+      .service-row.reverse .sr-num { text-align: left; }
+      .service-row .sr-num { flex: 0 0 auto; padding-top: 0; }
       .service-row .sr-illustration {
-        grid-column: 1 / -1;
-        order: 3;
+        flex: 0 0 auto;
+        width: 100%;
         max-width: 320px;
       }
     }
@@ -2666,8 +2674,10 @@
         const total = rect.height + vh;
         const passed = vh - rect.top;
         const progress = clamp(passed / total, 0, 1);
-        // -45 .. +45 degrees of real Y-rotation. Bigger range = more dramatic.
-        const rotDeg = lerp(-45, 45, progress);
+        // -90 .. +90 degrees of real Y-rotation across the scroll section.
+        // Doubling from the original ±45° range makes the building visibly
+        // rotate twice as fast as you scroll past it.
+        const rotDeg = lerp(-90, 90, progress);
 
         const rotor = project.querySelector('.scene-rotor');
         const display = project.querySelector('[data-rot-display]');

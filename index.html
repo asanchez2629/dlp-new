@@ -497,6 +497,14 @@
       align-items: center;
       justify-content: center;
     }
+    /* Reversed rows: illustration on the LEFT, content on the right.
+       We re-order with grid-column overrides so the same DOM order works. */
+    .service-row.reverse {
+      grid-template-columns: 280px 1fr 80px;
+    }
+    .service-row.reverse .sr-num     { grid-column: 3; text-align: right; }
+    .service-row.reverse .sr-content { grid-column: 2; }
+    .service-row.reverse .sr-illustration { grid-column: 1; }
     .service-row .sr-illustration::before {
       content: "";
       position: absolute;
@@ -881,19 +889,43 @@
     @media (max-width: 900px) { .clients-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 520px) { .clients-grid { grid-template-columns: repeat(2, 1fr); } }
 
-    /* ---------- Testimonials ---------- */
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
+    /* ---------- Testimonials carousel ---------- */
+    .testimonials-scroll {
+      position: relative;
+      /* Negative margin lets cards bleed past container padding for full-bleed feel */
+      margin-left: calc(var(--pad) * -1);
+      margin-right: calc(var(--pad) * -1);
+      padding: 8px 0;
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent 0, black 4%, black 96%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0, black 4%, black 96%, transparent 100%);
     }
+    .testimonials-track {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 8px var(--pad);
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .testimonials-track::-webkit-scrollbar { display: none; }
+
     .testimonial {
-      padding: 44px 36px;
+      flex: 0 0 420px;
+      scroll-snap-align: start;
+      padding: 36px 32px;
       border: 1px solid var(--line);
       background: var(--bg);
       display: flex;
       flex-direction: column;
-      gap: 28px;
+      gap: 22px;
+      transition: border-color 0.25s ease, background 0.25s ease;
+    }
+    .testimonial:hover {
+      border-color: rgba(217, 162, 95, 0.4);
+      background: var(--bg-alt);
     }
     .testimonial .quote-mark {
       font-family: var(--display);
@@ -904,45 +936,130 @@
     }
     .testimonial blockquote {
       font-family: var(--display);
-      font-size: 1.25rem;
+      font-size: 1.18rem;
       font-weight: 300;
-      line-height: 1.35;
+      line-height: 1.4;
       letter-spacing: -0.01em;
       color: var(--ink);
+      flex: 1;
     }
     .testimonial .attr {
       border-top: 1px solid var(--line);
-      padding-top: 20px;
+      padding-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .testimonial .avatar {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(217,162,95,0.18) 0%, rgba(217,162,95,0.04) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 1.1rem;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+      overflow: hidden;
+    }
+    .testimonial .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    .testimonial .attr-meta {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .testimonial .attr .name {
+    .testimonial .attr-meta .name {
       font-weight: 500;
       font-size: 0.95rem;
+      color: var(--ink);
     }
-    .testimonial .attr .role {
+    .testimonial .attr-meta .role {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink-mute);
     }
-    @media (max-width: 780px) { .testimonials-grid { grid-template-columns: 1fr; } }
+
+    /* Carousel controls */
+    .testimonials-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      align-items: center;
+    }
+    .tc-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      font-family: var(--sans);
+      font-size: 18px;
+    }
+    .tc-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(217,162,95,0.06); }
+    .tc-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .tc-progress {
+      flex: 1;
+      max-width: 180px;
+      height: 1px;
+      background: var(--line);
+      margin: 0 12px;
+      position: relative;
+    }
+    .tc-progress::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      height: 1px;
+      width: var(--tc-progress, 0%);
+      background: var(--accent);
+      transition: width 0.25s ease;
+    }
+    .tc-hint {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+
+    @media (max-width: 600px) {
+      .testimonial { flex: 0 0 320px; padding: 28px 24px; }
+      .testimonial blockquote { font-size: 1.05rem; }
+    }
 
     /* ---------- About strip ---------- */
     .about {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 80px;
-      align-items: center;
+      align-items: start;
     }
+    .about-text-block { display: flex; flex-direction: column; gap: 0; }
     .about h2 {
       font-family: var(--display);
       font-weight: 300;
       font-size: clamp(2rem, 4vw, 3.4rem);
       line-height: 1.02;
       letter-spacing: -0.02em;
+      margin-bottom: 32px;
     }
     .about h2 em { font-style: italic; color: var(--accent); }
     .about p { color: var(--ink-dim); margin-bottom: 18px; font-size: 1.05rem; line-height: 1.65; }
@@ -965,6 +1082,67 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--ink-mute);
+    }
+    .about-image {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%);
+    }
+    .about-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .about-image .placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: var(--ink-mute);
+    }
+    .about-image .placeholder::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(217,162,95,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,162,95,0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+    .about-image .placeholder::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 30%, var(--bg) 110%);
+      pointer-events: none;
+    }
+    .about-image .ph-icon {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      position: relative;
+      z-index: 1;
+    }
+    .about-image .ph-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
     }
     @media (max-width: 900px) { .about { grid-template-columns: 1fr; gap: 40px; } }
 
@@ -1272,7 +1450,7 @@
         </article>
 
         <!-- 02 — Modelado 3D, BIM & CAD: BIM data-block illustration -->
-        <article class="service-row">
+        <article class="service-row reverse">
           <div class="sr-num">/ 02</div>
           <div class="sr-content">
             <h3>Modelado 3D, BIM &amp; CAD</h3>
@@ -1424,7 +1602,7 @@
         </article>
 
         <!-- 04 — Coordinación de Diseño: process workflow / coordination diagram -->
-        <article class="service-row">
+        <article class="service-row reverse">
           <div class="sr-num">/ 04</div>
           <div class="sr-content">
             <h3>Coordinación de Diseño</h3>
@@ -1570,84 +1748,18 @@
             <div class="project-visual-label">Modelo BIM · LOD 350</div>
             <div class="project-visual-progress">ROT <span data-rot-display>0°</span></div>
 
-            <!--
-              Wireframe building. The whole <g> rotates on Y-axis (simulated by skew + scale)
-              based on scroll position — controlled via CSS variables set from JS.
-              We use an SVG group with transform tied to a CSS custom property.
-            -->
-            <svg class="scene-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- 3D wireframe building. JS populates the .scene-rotor group
+                 each frame with real perspective-projected geometry, so the
+                 rotation is genuine 3D, not a flat skew. -->
+            <svg class="scene-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-scene-type="tower">
               <defs>
                 <linearGradient id="buildingStroke" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#D9A25F" stop-opacity="0.9" />
                   <stop offset="100%" stop-color="#D9A25F" stop-opacity="0.3" />
                 </linearGradient>
               </defs>
-
-              <g class="scene-rotor">
-                <!-- We'll redraw building based on rotation angle in JS via CSS perspective + rotate3d.
-                     Static SVG geometry below shows a 3-quarter view that we morph by skewing. -->
-
-                <!-- Ground plane -->
-                <ellipse cx="200" cy="430" rx="180" ry="22" fill="none" stroke="#2A2822" stroke-width="1" />
-
-                <!-- Building main mass: front face -->
-                <g stroke="url(#buildingStroke)" stroke-width="1.2" fill="none" stroke-linejoin="round">
-                  <!-- Outline -->
-                  <path d="M 110 130 L 200 100 L 290 130 L 290 380 L 200 410 L 110 380 Z" />
-
-                  <!-- Vertical edges -->
-                  <line x1="200" y1="100" x2="200" y2="410" />
-
-                  <!-- Floor lines (front-left face) -->
-                  <line x1="110" y1="158" x2="200" y2="128" />
-                  <line x1="110" y1="186" x2="200" y2="156" />
-                  <line x1="110" y1="214" x2="200" y2="184" />
-                  <line x1="110" y1="242" x2="200" y2="212" />
-                  <line x1="110" y1="270" x2="200" y2="240" />
-                  <line x1="110" y1="298" x2="200" y2="268" />
-                  <line x1="110" y1="326" x2="200" y2="296" />
-                  <line x1="110" y1="354" x2="200" y2="324" />
-                  <line x1="110" y1="382" x2="200" y2="352" />
-
-                  <!-- Floor lines (front-right face) -->
-                  <line x1="200" y1="128" x2="290" y2="158" />
-                  <line x1="200" y1="156" x2="290" y2="186" />
-                  <line x1="200" y1="184" x2="290" y2="214" />
-                  <line x1="200" y1="212" x2="290" y2="242" />
-                  <line x1="200" y1="240" x2="290" y2="270" />
-                  <line x1="200" y1="268" x2="290" y2="298" />
-                  <line x1="200" y1="296" x2="290" y2="326" />
-                  <line x1="200" y1="324" x2="290" y2="354" />
-                  <line x1="200" y1="352" x2="290" y2="382" />
-
-                  <!-- Window grid (subtle) on left face -->
-                  <g opacity="0.5">
-                    <line x1="135" y1="148" x2="135" y2="385" stroke-dasharray="2 4" />
-                    <line x1="160" y1="139" x2="160" y2="395" stroke-dasharray="2 4" />
-                    <line x1="178" y1="133" x2="178" y2="402" stroke-dasharray="2 4" />
-                  </g>
-                  <!-- Window grid on right face -->
-                  <g opacity="0.5">
-                    <line x1="222" y1="133" x2="222" y2="402" stroke-dasharray="2 4" />
-                    <line x1="245" y1="140" x2="245" y2="396" stroke-dasharray="2 4" />
-                    <line x1="265" y1="146" x2="265" y2="389" stroke-dasharray="2 4" />
-                  </g>
-
-                  <!-- Roof detail / penthouse -->
-                  <path d="M 145 116 L 200 98 L 255 116 L 255 100 L 200 84 L 145 100 Z" stroke-width="1" />
-
-                  <!-- Base / podium -->
-                  <path d="M 95 388 L 200 423 L 305 388 L 305 405 L 200 440 L 95 405 Z" stroke-width="1" />
-                </g>
-
-                <!-- Floating dimension marker -->
-                <g opacity="0.7">
-                  <line x1="320" y1="100" x2="320" y2="410" stroke="#6E685E" stroke-width="0.8" stroke-dasharray="2 3" />
-                  <line x1="316" y1="100" x2="324" y2="100" stroke="#6E685E" stroke-width="0.8" />
-                  <line x1="316" y1="410" x2="324" y2="410" stroke="#6E685E" stroke-width="0.8" />
-                  <text x="328" y="258" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6E685E" letter-spacing="1.5">54.0 M</text>
-                </g>
-              </g>
+              <ellipse cx="200" cy="430" rx="180" ry="22" fill="none" stroke="#2A2822" stroke-width="1" />
+              <g class="scene-rotor"></g>
             </svg>
           </div>
         </div>
@@ -1691,67 +1803,15 @@
             <div class="project-visual-label">Modelo Diseño · LOD 300</div>
             <div class="project-visual-progress">ROT <span data-rot-display>0°</span></div>
 
-            <svg class="scene-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <svg class="scene-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-scene-type="house">
               <defs>
                 <linearGradient id="houseStroke" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#D9A25F" stop-opacity="0.9" />
                   <stop offset="100%" stop-color="#D9A25F" stop-opacity="0.3" />
                 </linearGradient>
               </defs>
-
-              <g class="scene-rotor">
-                <!-- Ground plane -->
-                <ellipse cx="200" cy="400" rx="180" ry="22" fill="none" stroke="#2A2822" stroke-width="1" />
-
-                <g stroke="url(#houseStroke)" stroke-width="1.2" fill="none" stroke-linejoin="round">
-                  <!-- House volumes - low-slung modern residence -->
-
-                  <!-- Main pavilion -->
-                  <path d="M 90 280 L 200 248 L 310 280 L 310 360 L 200 392 L 90 360 Z" />
-                  <line x1="200" y1="248" x2="200" y2="392" />
-
-                  <!-- Roof slab (flat with overhang) -->
-                  <path d="M 70 268 L 200 232 L 330 268 L 330 282 L 200 246 L 70 282 Z" />
-
-                  <!-- Secondary wing (lower right) -->
-                  <path d="M 200 312 L 290 290 L 360 310 L 360 360 L 290 380 L 200 360 Z" stroke-width="1" opacity="0.85" />
-                  <line x1="290" y1="290" x2="290" y2="380" stroke-width="1" opacity="0.85" />
-
-                  <!-- Floor-to-ceiling windows (front-left) -->
-                  <g opacity="0.6">
-                    <line x1="118" y1="290" x2="118" y2="358" stroke-dasharray="2 3" />
-                    <line x1="142" y1="282" x2="142" y2="365" stroke-dasharray="2 3" />
-                    <line x1="170" y1="274" x2="170" y2="376" stroke-dasharray="2 3" />
-                  </g>
-                  <!-- Front-right -->
-                  <g opacity="0.6">
-                    <line x1="230" y1="258" x2="230" y2="386" stroke-dasharray="2 3" />
-                    <line x1="258" y1="266" x2="258" y2="380" stroke-dasharray="2 3" />
-                    <line x1="282" y1="274" x2="282" y2="372" stroke-dasharray="2 3" />
-                  </g>
-
-                  <!-- Pool / terrace base -->
-                  <path d="M 60 380 L 200 420 L 340 380 L 340 392 L 200 432 L 60 392 Z" stroke-width="0.9" opacity="0.75" />
-
-                  <!-- Tree / landscape mark -->
-                  <g opacity="0.5">
-                    <circle cx="350" cy="270" r="14" />
-                    <line x1="350" y1="284" x2="350" y2="306" />
-                  </g>
-                  <g opacity="0.5">
-                    <circle cx="55" cy="288" r="10" />
-                    <line x1="55" y1="298" x2="55" y2="316" />
-                  </g>
-                </g>
-
-                <!-- Dimension marker -->
-                <g opacity="0.7">
-                  <line x1="60" y1="232" x2="60" y2="392" stroke="#6E685E" stroke-width="0.8" stroke-dasharray="2 3" />
-                  <line x1="56" y1="232" x2="64" y2="232" stroke="#6E685E" stroke-width="0.8" />
-                  <line x1="56" y1="392" x2="64" y2="392" stroke="#6E685E" stroke-width="0.8" />
-                  <text x="22" y="316" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6E685E" letter-spacing="1.5">9.4 M</text>
-                </g>
-              </g>
+              <ellipse cx="200" cy="400" rx="180" ry="22" fill="none" stroke="#2A2822" stroke-width="1" />
+              <g class="scene-rotor"></g>
             </svg>
           </div>
         </div>
@@ -1846,39 +1906,87 @@
         </p>
       </div>
 
-      <div class="testimonials-grid reveal">
-        <div class="testimonial">
-          <div class="quote-mark">"</div>
-          <blockquote>Lorem ipsum placeholder — aquí irá el primer testimonio real de un cliente satisfecho describiendo la experiencia de trabajar con DLP y el impacto en su proyecto.</blockquote>
-          <div class="attr">
-            <div class="name">Nombre del Cliente</div>
-            <div class="role">Cargo · Estudio · Ciudad</div>
+      <div class="testimonials-scroll reveal">
+        <div class="testimonials-track" id="testimonialsTrack">
+          <div class="testimonial">
+            <div class="quote-mark">"</div>
+            <blockquote>Lorem ipsum placeholder — aquí irá el primer testimonio real de un cliente satisfecho describiendo la experiencia de trabajar con DLP y el impacto en su proyecto.</blockquote>
+            <div class="attr">
+              <div class="avatar">N</div>
+              <div class="attr-meta">
+                <div class="name">Nombre del Cliente</div>
+                <div class="role">Cargo · Estudio · Ciudad</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial">
+            <div class="quote-mark">"</div>
+            <blockquote>Placeholder para segundo testimonio — este espacio está reservado para una cita que destaque velocidad de entrega, calidad técnica o capacidad de escalar producción.</blockquote>
+            <div class="attr">
+              <div class="avatar">N</div>
+              <div class="attr-meta">
+                <div class="name">Nombre del Cliente</div>
+                <div class="role">Cargo · Estudio · Ciudad</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial">
+            <div class="quote-mark">"</div>
+            <blockquote>Tercer placeholder — aquí podría ir un testimonio enfocado en coordinación de obra, precisión de planos, o la facilidad de integración con el flujo de trabajo del cliente.</blockquote>
+            <div class="attr">
+              <div class="avatar">N</div>
+              <div class="attr-meta">
+                <div class="name">Nombre del Cliente</div>
+                <div class="role">Cargo · Estudio · Ciudad</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial">
+            <div class="quote-mark">"</div>
+            <blockquote>Cuarto placeholder — reservado para una cita que hable de una colaboración de largo plazo o de cómo DLP se convirtió en extensión natural del equipo interno.</blockquote>
+            <div class="attr">
+              <div class="avatar">N</div>
+              <div class="attr-meta">
+                <div class="name">Nombre del Cliente</div>
+                <div class="role">Cargo · Estudio · Ciudad</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial">
+            <div class="quote-mark">"</div>
+            <blockquote>Quinto placeholder — espacio adicional para un testimonio que enfatice la confianza y la consistencia del equipo a lo largo de múltiples proyectos.</blockquote>
+            <div class="attr">
+              <div class="avatar">N</div>
+              <div class="attr-meta">
+                <div class="name">Nombre del Cliente</div>
+                <div class="role">Cargo · Estudio · Ciudad</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial">
+            <div class="quote-mark">"</div>
+            <blockquote>Sexto placeholder — reservado para una cita corta y contundente que sirva como cierre de la sección de testimonios.</blockquote>
+            <div class="attr">
+              <div class="avatar">N</div>
+              <div class="attr-meta">
+                <div class="name">Nombre del Cliente</div>
+                <div class="role">Cargo · Estudio · Ciudad</div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="testimonial">
-          <div class="quote-mark">"</div>
-          <blockquote>Placeholder para segundo testimonio — este espacio está reservado para una cita que destaque velocidad de entrega, calidad técnica o capacidad de escalar producción.</blockquote>
-          <div class="attr">
-            <div class="name">Nombre del Cliente</div>
-            <div class="role">Cargo · Estudio · Ciudad</div>
-          </div>
-        </div>
-        <div class="testimonial">
-          <div class="quote-mark">"</div>
-          <blockquote>Tercer placeholder — aquí podría ir un testimonio enfocado en coordinación de obra, precisión de planos, o la facilidad de integración con el flujo de trabajo del cliente.</blockquote>
-          <div class="attr">
-            <div class="name">Nombre del Cliente</div>
-            <div class="role">Cargo · Estudio · Ciudad</div>
-          </div>
-        </div>
-        <div class="testimonial">
-          <div class="quote-mark">"</div>
-          <blockquote>Cuarto placeholder — reservado para una cita que hable de una colaboración de largo plazo o de cómo DLP se convirtió en extensión natural del equipo interno.</blockquote>
-          <div class="attr">
-            <div class="name">Nombre del Cliente</div>
-            <div class="role">Cargo · Estudio · Ciudad</div>
-          </div>
-        </div>
+      </div>
+
+      <div class="testimonials-controls reveal">
+        <button class="tc-btn" id="testimonialsPrev" aria-label="Anterior">←</button>
+        <button class="tc-btn" id="testimonialsNext" aria-label="Siguiente">→</button>
+        <div class="tc-progress" id="testimonialsProgress"></div>
+        <span class="tc-hint">Desliza para ver más</span>
       </div>
     </div>
   </section>
@@ -1887,11 +1995,9 @@
   <section id="nosotros" class="band">
     <div class="container">
       <div class="about reveal">
-        <div>
+        <div class="about-text-block">
           <span class="eyebrow" style="margin-bottom:18px; display:block;">/ 05 — Nosotros</span>
           <h2>Un equipo que <em>diseña</em>, dibuja y coordina — como si fuera el tuyo.</h2>
-        </div>
-        <div>
           <p>DLP Arquitectura y Diseño nace para resolver lo que los estudios ya saben hacer, pero no tienen tiempo de ejecutar. Somos arquitectos y diseñadores especializados en producción técnica, modelado BIM y visualización.</p>
           <p>Nuestro diferencial no está en un software ni en un workflow concreto — está en integrarnos al tuyo. Adoptamos tus estándares, tu plantilla, tu nomenclatura. El entregable final es indistinguible de lo que produce tu equipo interno.</p>
           <div class="stats-inline">
@@ -1907,6 +2013,20 @@
               <div class="n">100%</div>
               <div class="l">Remoto</div>
             </div>
+          </div>
+        </div>
+
+        <div class="about-image">
+          <!-- Replace with: <img src="your-image.jpg" alt="DLP team" /> -->
+          <div class="placeholder">
+            <div class="ph-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+            </div>
+            <div class="ph-label">Imagen del equipo</div>
           </div>
         </div>
       </div>
@@ -2313,63 +2433,246 @@
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
     // ============= Scroll-driven 3D rotation =============
-    // For each .featured-project, rotate the wireframe building/house as the
-    // user scrolls through the section.
-    //
-    // CSS `perspective() rotateY()` is unreliable on inner SVG <g> elements —
-    // browsers vary widely in support. Instead we use SVG's native transform
-    // attribute with a matrix that simulates a Y-axis rotation in pseudo-3D:
-    //   scaleX = cos(angle)        -> the building gets thinner as it rotates
-    //   skewY  = sin(angle) * k    -> slight vertical shear adds depth illusion
-    // This is bulletproof across all SVG-supporting browsers.
+    // Each .featured-project's wireframe is rendered from real 3D geometry.
+    // We rebuild the SVG path each frame using actual Y-axis rotation +
+    // perspective projection. This produces genuine 3D rotation, not a
+    // flat skew that you can barely see.
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     const projects = document.querySelectorAll('.featured-project');
+    const SVG_NS = 'http://www.w3.org/2000/svg';
 
     function lerp(a, b, t) { return a + (b - a) * t; }
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
+    // ---- 3D projection helper ----
+    // World coords: +X right, +Y up, +Z toward viewer.
+    // Camera at (0, 0, +FOCAL), looking toward origin.
+    const FOCAL = 600;
+    const CENTER_X = 200;   // SVG viewBox center
+    const CENTER_Y = 250;
+
+    function project3D(x, y, z, angleDeg) {
+      const r = angleDeg * Math.PI / 180;
+      const c = Math.cos(r), s = Math.sin(r);
+      // Y-axis rotation
+      const rx = c * x + s * z;
+      const ry = y;
+      const rz = -s * x + c * z;
+      // Perspective
+      const pz = FOCAL + rz;
+      const f = pz > 1 ? FOCAL / pz : FOCAL;
+      return {
+        sx: CENTER_X + rx * f,
+        sy: CENTER_Y - ry * f,
+        z: rz,
+      };
+    }
+
+    // ---- Scene definitions: 3D vertices + edges ----
+    // Vertices listed once; edges reference them by index.
+    // Y is UP. Building origin = ground level center.
+
+    function makeTowerScene() {
+      // Tower: 90 wide × 90 deep × 280 tall (Y is up, so y in [0..280])
+      const W = 50, D = 50, H = 280, FLOORS = 9;
+      const verts = [];
+      const edges = [];
+
+      // 8 corners of the main mass
+      const c = [
+        [-W,   0, -D], [ W,   0, -D], [ W,   0,  D], [-W,   0,  D],  // base
+        [-W,   H, -D], [ W,   H, -D], [ W,   H,  D], [-W,   H,  D],  // top
+      ];
+      const baseIdx = verts.length;
+      c.forEach(v => verts.push(v));
+
+      // Box edges: bottom 4, top 4, vertical 4
+      edges.push(
+        [baseIdx+0, baseIdx+1, 1.6], [baseIdx+1, baseIdx+2, 1.6], [baseIdx+2, baseIdx+3, 1.6], [baseIdx+3, baseIdx+0, 1.6],
+        [baseIdx+4, baseIdx+5, 1.6], [baseIdx+5, baseIdx+6, 1.6], [baseIdx+6, baseIdx+7, 1.6], [baseIdx+7, baseIdx+4, 1.6],
+        [baseIdx+0, baseIdx+4, 1.6], [baseIdx+1, baseIdx+5, 1.6], [baseIdx+2, baseIdx+6, 1.6], [baseIdx+3, baseIdx+7, 1.6],
+      );
+
+      // Floor lines: horizontal squares between top and bottom
+      for (let i = 1; i <= FLOORS; i++) {
+        const y = (H * i) / (FLOORS + 1);
+        const fIdx = verts.length;
+        verts.push([-W, y, -D], [ W, y, -D], [ W, y,  D], [-W, y,  D]);
+        edges.push(
+          [fIdx+0, fIdx+1, 0.7], [fIdx+1, fIdx+2, 0.7],
+          [fIdx+2, fIdx+3, 0.7], [fIdx+3, fIdx+0, 0.7],
+        );
+      }
+
+      // Penthouse roof (small box on top, smaller footprint, 30 tall)
+      const PW = 32, PD = 32, PH = 28;
+      const pIdx = verts.length;
+      verts.push(
+        [-PW, H,    -PD], [ PW, H,    -PD], [ PW, H,     PD], [-PW, H,     PD],
+        [-PW, H+PH, -PD], [ PW, H+PH, -PD], [ PW, H+PH,  PD], [-PW, H+PH,  PD],
+      );
+      edges.push(
+        [pIdx+0, pIdx+1, 1], [pIdx+1, pIdx+2, 1], [pIdx+2, pIdx+3, 1], [pIdx+3, pIdx+0, 1],
+        [pIdx+4, pIdx+5, 1], [pIdx+5, pIdx+6, 1], [pIdx+6, pIdx+7, 1], [pIdx+7, pIdx+4, 1],
+        [pIdx+0, pIdx+4, 1], [pIdx+1, pIdx+5, 1], [pIdx+2, pIdx+6, 1], [pIdx+3, pIdx+7, 1],
+      );
+
+      // Podium (wider base block, 16 tall, sits at y=0..16)
+      const BW = 62, BD = 62, BH = 14;
+      // Already have base at y=0; just add the podium top edges
+      const dIdx = verts.length;
+      verts.push(
+        [-BW, -BH, -BD], [ BW, -BH, -BD], [ BW, -BH,  BD], [-BW, -BH,  BD],
+        [-BW,   0, -BD], [ BW,   0, -BD], [ BW,   0,  BD], [-BW,   0,  BD],
+      );
+      edges.push(
+        [dIdx+0, dIdx+1, 0.9], [dIdx+1, dIdx+2, 0.9], [dIdx+2, dIdx+3, 0.9], [dIdx+3, dIdx+0, 0.9],
+        [dIdx+4, dIdx+5, 0.9], [dIdx+5, dIdx+6, 0.9], [dIdx+6, dIdx+7, 0.9], [dIdx+7, dIdx+4, 0.9],
+        [dIdx+0, dIdx+4, 0.9], [dIdx+1, dIdx+5, 0.9], [dIdx+2, dIdx+6, 0.9], [dIdx+3, dIdx+7, 0.9],
+      );
+
+      // World offset: shift the whole scene down so the building sits well in viewBox.
+      // Project space: y_screen = CENTER_Y - y_world * f. Our building y goes 0..280.
+      // We want roof (y=308 incl penthouse) to be near the top of viewBox (sy ≈ 80)
+      // and base (y=-14) to be near the bottom (sy ≈ 420). So we shift world so center
+      // of building (~y=140) projects to the visual center.
+      // Easiest: keep verts as is, but offset Y_OFFSET in world coords.
+      const Y_OFFSET = -140;
+      verts.forEach(v => { v[1] += Y_OFFSET; });
+
+      return { verts, edges };
+    }
+
+    function makeHouseScene() {
+      // Low-slung house: main pavilion 220 wide × 100 deep × 50 tall, plus
+      // overhanging flat roof, plus secondary wing on the right.
+      const verts = [];
+      const edges = [];
+
+      // ---- Main pavilion ----
+      const MW = 110, MD = 50, MH = 50;
+      let i0 = verts.length;
+      verts.push(
+        [-MW, 0,   -MD], [ MW, 0,   -MD], [ MW, 0,    MD], [-MW, 0,    MD],
+        [-MW, MH,  -MD], [ MW, MH,  -MD], [ MW, MH,   MD], [-MW, MH,   MD],
+      );
+      edges.push(
+        [i0+0,i0+1,1.4],[i0+1,i0+2,1.4],[i0+2,i0+3,1.4],[i0+3,i0+0,1.4],
+        [i0+4,i0+5,1.4],[i0+5,i0+6,1.4],[i0+6,i0+7,1.4],[i0+7,i0+4,1.4],
+        [i0+0,i0+4,1.4],[i0+1,i0+5,1.4],[i0+2,i0+6,1.4],[i0+3,i0+7,1.4],
+      );
+
+      // ---- Overhanging flat roof slab (extends past pavilion on all sides) ----
+      const RW = 130, RD = 65, RT = 8;
+      let i1 = verts.length;
+      verts.push(
+        [-RW, MH,   -RD], [ RW, MH,   -RD], [ RW, MH,    RD], [-RW, MH,    RD],
+        [-RW, MH+RT,-RD], [ RW, MH+RT,-RD], [ RW, MH+RT, RD], [-RW, MH+RT, RD],
+      );
+      edges.push(
+        [i1+0,i1+1,1],[i1+1,i1+2,1],[i1+2,i1+3,1],[i1+3,i1+0,1],
+        [i1+4,i1+5,1],[i1+5,i1+6,1],[i1+6,i1+7,1],[i1+7,i1+4,1],
+        [i1+0,i1+4,1],[i1+1,i1+5,1],[i1+2,i1+6,1],[i1+3,i1+7,1],
+      );
+
+      // ---- Secondary wing (right side, lower than main) ----
+      const SX = 80, SY = 0, SZ = 0;   // anchor point relative to origin
+      const SW = 60, SD = 35, SH = 38;
+      let i2 = verts.length;
+      verts.push(
+        [SX,    SY,    SZ-SD], [SX+SW*2, SY,    SZ-SD], [SX+SW*2, SY,    SZ+SD], [SX,    SY,    SZ+SD],
+        [SX,    SY+SH, SZ-SD], [SX+SW*2, SY+SH, SZ-SD], [SX+SW*2, SY+SH, SZ+SD], [SX,    SY+SH, SZ+SD],
+      );
+      edges.push(
+        [i2+0,i2+1,0.95],[i2+1,i2+2,0.95],[i2+2,i2+3,0.95],[i2+3,i2+0,0.95],
+        [i2+4,i2+5,0.95],[i2+5,i2+6,0.95],[i2+6,i2+7,0.95],[i2+7,i2+4,0.95],
+        [i2+0,i2+4,0.95],[i2+1,i2+5,0.95],[i2+2,i2+6,0.95],[i2+3,i2+7,0.95],
+      );
+
+      // ---- Pool / terrace base (very thin, wider than house) ----
+      const PW = 150, PD = 80, PH = 4;
+      let i3 = verts.length;
+      verts.push(
+        [-PW, -PH, -PD], [ PW, -PH, -PD], [ PW, -PH,  PD], [-PW, -PH,  PD],
+        [-PW,  0,  -PD], [ PW,  0,  -PD], [ PW,  0,   PD], [-PW,  0,   PD],
+      );
+      edges.push(
+        [i3+0,i3+1,0.7],[i3+1,i3+2,0.7],[i3+2,i3+3,0.7],[i3+3,i3+0,0.7],
+        [i3+4,i3+5,0.7],[i3+5,i3+6,0.7],[i3+6,i3+7,0.7],[i3+7,i3+4,0.7],
+        [i3+0,i3+4,0.7],[i3+1,i3+5,0.7],[i3+2,i3+6,0.7],[i3+3,i3+7,0.7],
+      );
+
+      // Center the whole scene so it fits in viewBox. House is short, so
+      // we offset its center toward the lower portion of the canvas.
+      const Y_OFFSET = -55;
+      verts.forEach(v => { v[1] += Y_OFFSET; });
+
+      return { verts, edges };
+    }
+
+    // ---- Build scene per project ----
+    const sceneCache = new Map();
+    projects.forEach(project => {
+      const svg = project.querySelector('svg.scene-svg');
+      if (!svg) return;
+      const sceneType = svg.getAttribute('data-scene-type');
+      let scene;
+      if (sceneType === 'tower') scene = makeTowerScene();
+      else if (sceneType === 'house') scene = makeHouseScene();
+      else return;
+      sceneCache.set(project, { svg, scene });
+    });
+
+    // ---- Render scene at given angle ----
+    function renderScene(rotor, scene, angleDeg) {
+      // Project all vertices once
+      const projected = scene.verts.map(v => project3D(v[0], v[1], v[2], angleDeg));
+
+      // Build path data and per-edge depth for sorting (back to front)
+      // Sort edges by avg z (smaller = farther) so closer edges draw on top
+      const drawList = scene.edges.map(([a, b, w]) => {
+        const pa = projected[a], pb = projected[b];
+        return { pa, pb, w, depth: (pa.z + pb.z) / 2 };
+      });
+      drawList.sort((x, y) => x.depth - y.depth);
+
+      // Build SVG content as a string (faster than per-line DOM ops)
+      // Stroke color is the gradient ref; we vary opacity by depth.
+      let svgFrag = '';
+      // Map depth (-D..+D) to opacity 0.35..0.95
+      const minZ = Math.min(...projected.map(p => p.z));
+      const maxZ = Math.max(...projected.map(p => p.z));
+      const zRange = (maxZ - minZ) || 1;
+
+      for (const { pa, pb, w, depth } of drawList) {
+        const t = (depth - minZ) / zRange; // 0..1
+        const opacity = 0.35 + t * 0.6;
+        svgFrag += `<line x1="${pa.sx.toFixed(2)}" y1="${pa.sy.toFixed(2)}" x2="${pb.sx.toFixed(2)}" y2="${pb.sy.toFixed(2)}" stroke="url(#buildingStroke)" stroke-width="${w}" stroke-linecap="round" opacity="${opacity.toFixed(3)}"/>`;
+      }
+      // For the house scene we use a different gradient ID
+      if (rotor.closest('svg').getAttribute('data-scene-type') === 'house') {
+        svgFrag = svgFrag.replaceAll('url(#buildingStroke)', 'url(#houseStroke)');
+      }
+      rotor.innerHTML = svgFrag;
+    }
+
     function updateRotors() {
       const vh = window.innerHeight;
-
       projects.forEach(project => {
+        const cached = sceneCache.get(project);
+        if (!cached) return;
         const rect = project.getBoundingClientRect();
-        // Progress through the section: 0 when project top hits bottom of viewport,
-        // 1 when project bottom hits top of viewport.
         const total = rect.height + vh;
         const passed = vh - rect.top;
         const progress = clamp(passed / total, 0, 1);
-
-        // Map progress (0..1) to rotation angle (-32..+32 degrees of pseudo Y-rot)
-        const rotDeg = lerp(-32, 32, progress);
+        // -45 .. +45 degrees of real Y-rotation. Bigger range = more dramatic.
+        const rotDeg = lerp(-45, 45, progress);
 
         const rotor = project.querySelector('.scene-rotor');
         const display = project.querySelector('[data-rot-display]');
-
         if (rotor && !reduced) {
-          const rad = rotDeg * Math.PI / 180;
-          const cosA = Math.cos(rad);
-          const sinA = Math.sin(rad);
-          // Origin of rotation: center of the building (viewBox is 400x500,
-          // building roughly centered at 200,260)
-          const cx = 200, cy = 260;
-          // Pseudo-3D Y-rotation: scaleX(cos) plus a small vertical skew
-          // proportional to sin(a) to fake depth tilt of the front face.
-          // Build matrix: translate to origin, scale + skew, translate back.
-          const skew = sinA * 0.08;  // mild — keeps building upright-feeling
-          // Combined affine matrix:
-          //   [a c e]   [cosA  0     cx*(1-cosA)  ]
-          //   [b d f] = [skew  1     -skew*cx + cy*(1-1) ]
-          //   [0 0 1]   [0     0     1            ]
-          // Simpler: write out the explicit transform string.
-          const a = cosA;
-          const b = skew;
-          const c = 0;
-          const d = 1;
-          const e = cx - cx * cosA;
-          const f = -skew * cx;
-          rotor.setAttribute('transform', `matrix(${a.toFixed(4)} ${b.toFixed(4)} ${c} ${d} ${e.toFixed(2)} ${f.toFixed(2)})`);
+          renderScene(rotor, cached.scene, rotDeg);
         }
         if (display) {
           display.textContent = `${Math.round(rotDeg)}°`;
@@ -2377,21 +2680,45 @@
       });
     }
 
-    // Throttle via rAF
     let ticking = false;
     function onScroll() {
       if (!ticking) {
-        requestAnimationFrame(() => {
-          updateRotors();
-          ticking = false;
-        });
+        requestAnimationFrame(() => { updateRotors(); ticking = false; });
         ticking = true;
       }
     }
-
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     updateRotors();
+    // ============= Testimonials carousel =============
+    (function() {
+      const track = document.getElementById('testimonialsTrack');
+      const prev = document.getElementById('testimonialsPrev');
+      const next = document.getElementById('testimonialsNext');
+      const progress = document.getElementById('testimonialsProgress');
+      if (!track || !prev || !next) return;
+
+      const STEP = 444; // card width (420) + gap (24)
+
+      function updateProgress() {
+        const max = track.scrollWidth - track.clientWidth;
+        const pct = max > 0 ? (track.scrollLeft / max) * 100 : 0;
+        if (progress) progress.style.setProperty('--tc-progress', `${pct}%`);
+        prev.disabled = track.scrollLeft <= 1;
+        next.disabled = track.scrollLeft >= max - 1;
+      }
+
+      prev.addEventListener('click', () => {
+        track.scrollBy({ left: -STEP, behavior: 'smooth' });
+      });
+      next.addEventListener('click', () => {
+        track.scrollBy({ left: STEP, behavior: 'smooth' });
+      });
+      track.addEventListener('scroll', updateProgress, { passive: true });
+      window.addEventListener('resize', updateProgress);
+      updateProgress();
+    })();
+
   </script>
 </body>
 </html>
